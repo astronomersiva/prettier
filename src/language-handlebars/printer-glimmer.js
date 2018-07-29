@@ -29,6 +29,19 @@ const voidTags = [
   "wbr"
 ];
 
+// Escaping logic based on handlebars.js:
+// https://github.com/wycats/handlebars.js/blob/master/lib/handlebars/utils.js
+const escape = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  "\xa0": "&nbsp;"
+};
+const badChars = /[&<>\xa0]/g;
+function escapeChar(chr) {
+  return escape[chr];
+}
+
 // Formatter based on @glimmerjs/syntax's built-in test formatter:
 // https://github.com/glimmerjs/glimmer-vm/blob/master/packages/%40glimmer/syntax/lib/generation/print.ts
 
@@ -54,7 +67,7 @@ function print(path, options, print) {
       const hasChildren = n.children.length > 0;
       const isVoid =
         (isGlimmerComponent && !hasChildren) || voidTags.indexOf(n.tag) !== -1;
-      const closeTag = isVoid ? concat([" />", softline]) : ">";
+      const closeTag = isVoid ? concat([">", softline]) : ">";
       const getParams = (path, print) =>
         indent(
           concat([
@@ -232,6 +245,7 @@ function print(path, options, print) {
         }
       }
       return n.chars
+        .replace(badChars, escapeChar)
         .replace(/^\s+/, leadingSpace)
         .replace(/\s+$/, trailingSpace);
     }
